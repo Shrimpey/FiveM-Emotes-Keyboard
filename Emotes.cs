@@ -247,7 +247,7 @@ namespace Emotes
         //Last emote played
         private string lastEmote;
   
-        private bool playedEmote = true;
+        private bool isKeyboardUp = false;
 
         //Default constructor
         public Emotes()
@@ -286,38 +286,50 @@ namespace Emotes
             if (!Game.PlayerPed.IsInVehicle())
             {
                 //Display keyboard on "Z" key
-                if (playedEmote && Game.IsControlJustReleased(0, Control.MultiplayerInfo))
+                if (!isKeyboardUp && Game.IsControlJustReleased(0, Control.MultiplayerInfo))
                 {
                     DisplayKeyboard();
-                    playedEmote = false;
+                    isKeyboardUp = true;
                 }
 
                 //Play emote on keyboard exit
-                if (!playedEmote)
+                if (Function.Call<int>(Hash.UPDATE_ONSCREEN_KEYBOARD) == 1 && isKeyboardUp)
                 {
                     if (emoteNames.ContainsKey(GetKeyboardInput()))
                     {
-                        CancelEmote();
-                        PlayEmote(emoteNames[GetKeyboardInput()]);
-                        playedEmote = true;
-                        lastEmote = emoteNames[GetKeyboardInput()];
+                            CancelEmote();
+                            PlayEmote(emoteNames[GetKeyboardInput()]);
+                            lastEmote = emoteNames[GetKeyboardInput()];
+                            isKeyboardUp = false;
                     }
+                }else if (Function.Call<int>(Hash.UPDATE_ONSCREEN_KEYBOARD) == 2)
+                {
+                    //If player canceled editing - menu should be usable again
+                    isKeyboardUp = false;
                 }
-
 
                 //Cancel emote on "X" key
                 if (Game.IsControlJustReleased(0, Control.VehicleDuck))
                 {
                     CancelEmote();
-                    playedEmote = true;
                 }
 
-                //Play last emote on "C" key
-                if (Game.IsControlJustReleased(0, Control.LookBehind))
+                //Play last emote on "C" key, do it only if user is not editing
+                if (Function.Call<int>(Hash.UPDATE_ONSCREEN_KEYBOARD) != 0)
+                {
+                    if (Game.IsControlJustReleased(0, Control.LookBehind))
+                    {
+                        CancelEmote();
+                        PlayEmote(lastEmote);
+                        //Dev stuff, do not uncomment unless you need return feedback of UPDATE_KEYBOARD
+                        //TriggerEvent("chatMessage", "", new[] { 0, 0, 0 }, (Function.Call<int>(Hash.UPDATE_ONSCREEN_KEYBOARD)).ToString());
+                    }
+                }
+
+                //Cancel emote on player's movement
+                if (Game.IsControlJustReleased(0, Control.MoveUpOnly) || Game.IsControlJustReleased(0, Control.MoveDownOnly) || Game.IsControlJustReleased(0, Control.MoveLeftOnly) || Game.IsControlJustReleased(0, Control.MoveRightOnly))
                 {
                     CancelEmote();
-                    PlayEmote(lastEmote);
-                    playedEmote = true;
                 }
             }
         }
@@ -329,7 +341,7 @@ namespace Emotes
 
         string GetKeyboardInput()
         {
-            Function.Call(Hash.UPDATE_ONSCREEN_KEYBOARD);
+            //Function.Call(Hash.UPDATE_ONSCREEN_KEYBOARD);
             return Function.Call<string>(Hash.GET_ONSCREEN_KEYBOARD_RESULT);
         }
 
