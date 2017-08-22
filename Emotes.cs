@@ -286,7 +286,7 @@ namespace Emotes
             if (!Game.PlayerPed.IsInVehicle())
             {
                 //Display keyboard on "Z" key
-                if (Game.IsControlJustReleased(0, Control.MultiplayerInfo))
+                if (playedEmote && Game.IsControlJustReleased(0, Control.MultiplayerInfo))
                 {
                     DisplayKeyboard();
                     playedEmote = false;
@@ -309,6 +309,7 @@ namespace Emotes
                 if (Game.IsControlJustReleased(0, Control.VehicleDuck))
                 {
                     CancelEmote();
+                    playedEmote = true;
                 }
 
                 //Play last emote on "C" key
