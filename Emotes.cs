@@ -254,8 +254,8 @@ namespace Emotes
         {
             Tick += OnTick;
 
-            //Setting emote names to the dictionary
-            SetEmoteNames();
+            //After player joins - set up stuff
+            EventHandlers["onPlayerJoining"] += new Action(OnPlayerJoining);
         }
 
         private void SetEmoteNames()
@@ -340,6 +340,12 @@ namespace Emotes
         void CancelEmote()
         {
             Function.Call(Hash.CLEAR_PED_TASKS, Game.PlayerPed);
+        }
+
+        public void OnPlayerJoining()
+        {
+            //Setting emote names to the dictionary
+            SetEmoteNames();
         }
     }
 }
